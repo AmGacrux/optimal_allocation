@@ -139,25 +139,35 @@ namespace allocation_optimeNS {
 		dj[0]->adjacentNodes.push_back({5, dj[4]});
 		*/
 
-		dj[1]->adjacentNodes.push_back({ 3, dj[0] });
-		dj[1]->adjacentNodes.push_back({ 3, dj[2] });
-		dj[1]->adjacentNodes.push_back({ 4, dj[3] });
+		dj[1]->adjacentNodes = {
+			{ 3, dj[0] },
+			{ 3, dj[2] },
+			{ 4, dj[3] }
+		};
 
-		dj[2]->adjacentNodes.push_back({ 3, dj[1] });
-		dj[2]->adjacentNodes.push_back({ 6, dj[3] });
-		dj[2]->adjacentNodes.push_back({ 3, dj[4] });
-		dj[2]->adjacentNodes.push_back({ 1, dj[5] });
+		dj[2]->adjacentNodes = {
+			{ 3, dj[1] },
+			{ 6, dj[3] },
+			{ 3, dj[4] },
+			{ 1, dj[5] }
+		};
 
-		dj[3]->adjacentNodes.push_back({ 2, dj[0] });
-		dj[3]->adjacentNodes.push_back({ 4, dj[1] });
-		dj[3]->adjacentNodes.push_back({ 6, dj[2] });
+		dj[3]->adjacentNodes = {
+			{ 2, dj[0] },
+			{ 4, dj[1] },
+			{ 6, dj[2] }
+		};
 
-		dj[4]->adjacentNodes.push_back({ 5, dj[0] });
-		dj[4]->adjacentNodes.push_back({ 3, dj[2] });
-		dj[4]->adjacentNodes.push_back({ 2, dj[5] });
+		dj[4]->adjacentNodes = {
+			{ 5, dj[0] },
+			{ 3, dj[2] },
+			{ 2, dj[5] }
+		};
 
-		dj[5]->adjacentNodes.push_back({ 1, dj[2] });
-		dj[5]->adjacentNodes.push_back({ 2, dj[4] });
+		dj[5]->adjacentNodes = {
+			{ 1, dj[2] },
+			{ 2, dj[4] }
+		};
 
 		// 最も多くのノードとつながる次数を求める
 		maxDegree = [=](std::vector<DC*> adj){
@@ -337,7 +347,6 @@ namespace allocation_optimeNS {
 				minIdx = dc->idx;
 			}
 		}
-
 		return dj[minIdx];
 	}
 
@@ -397,26 +406,11 @@ namespace allocation_optimeNS {
 				}
 			}
 		}
-		/*
-		for(int j = 0; j < N; ++j) {
-		for(int i = 0; i < M; ++i) {
-		// 				if(allocate_task(dj[i], ti[j]))
-		// 					std::cout << i << ", " << j << std::endl;
-		// 				path[j][i];
-		// 				for(int k = 0; k < N*M; ++k) {
-		// 				}
-		calc_steps++;
-		}
-		calc_steps++;
-		}
-		*/
-		//	return std::pair<int,int>(calc_steps);
 		return std::pair<int, int>(cmpC + cmmC, calc_steps);
 	}
 } // end of namespace allocation_optimeNS
 
 int main(int argc, char** argv) {
-	using namespace std::chrono;
 	namespace OptNS = allocation_optimeNS;
 
 	//if(argc > 2)  allocation_optimeNS::init(atoi(argv[1]), atoi(argv[2]));
@@ -426,19 +420,19 @@ int main(int argc, char** argv) {
 	OptNS::print();
 	std::cout << std::endl << "Task amount: " << OptNS::Task::cnt() << ", DC nodes amount: " << OptNS::DC::cnt() << std::endl;
 
-	auto start = system_clock::now();
+	auto start = std::chrono::system_clock::now();
 
 	std::cout << "================================" << std::endl;
 	std::cout << "Using greedy method:" << std::endl;
 	std::pair<int, int> ans = allocation_optimeNS::greedy();
 	//std::cout << "Using brute force method:" << std::endl;
 	//std::pair<float,int> ans = allocation_optimeNS::brute_force();
-	auto end = system_clock::now();
+	auto end = std::chrono::system_clock::now();
 	auto diff = end - start;
 
 	std::cout << "steps: " << ans.second << std::endl;
 	std::cout << "duration time : "
-		<< duration_cast<milliseconds>(diff).count()
+		<< std::chrono::duration_cast<std::chrono::milliseconds>(diff).count()
 		<< " msec" << std::endl;
 
 	int N{};
