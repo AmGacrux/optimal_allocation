@@ -6,8 +6,6 @@
     
 *test string*  
 __test string__  
-
-
   
 - リスト1  
 	- リスト1.a hoge  
