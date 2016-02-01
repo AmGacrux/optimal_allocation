@@ -81,7 +81,7 @@
     <None Include="3README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\Dropbox\dev\univ\minimumcost_maximumflow\src\tmp.cpp" />
+    <ClCompile Include="tmp.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

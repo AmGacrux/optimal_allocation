@@ -15,11 +15,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\Dropbox\dev\univ\minimumcost_maximumflow\src\tmp.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
+    <None Include="3README.md" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="3README.md" />
+    <ClCompile Include="tmp.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
