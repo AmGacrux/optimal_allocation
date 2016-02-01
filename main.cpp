@@ -4,7 +4,6 @@
 #include <iostream>
 #include <limits>
 #include <map>
-#include <list>
 #include <tuple>
 #include <random>
 #include <vector>
@@ -15,11 +14,12 @@
 // Compile Requirement: g++ -std=c++11 allocation.cpp
 // 
 
-namespace allocation_optimize_NS {
+namespace allocation_optimeNS {
 	// Data center node
 	class DC {
 	private:
 		static int obj_cnt;
+
 	public:
 		int idx; // computation cost
 		int cmp_c; // computation cost
@@ -39,9 +39,8 @@ namespace allocation_optimize_NS {
 			obj_cnt++;
 		}
 		static int cnt() { return obj_cnt; }
-		bool operator<(const DC &right) const { return this->idx < right.idx; }
 	};
-	int DC::obj_cnt{ 0 };
+	int DC::obj_cnt;
 
 	/*
 	// Data center node
@@ -86,11 +85,10 @@ namespace allocation_optimize_NS {
 			assignNode = nullptr;
 			obj_cnt++;
 		}
-		Task(const Task &obj) { }
+		Task(const Task& obj) { }
 		static int cnt() { return obj_cnt; }
-		bool operator<(const Task &right) const { return this->idx < right.idx; }
 	};
-	int Task::obj_cnt{ 0 };
+	int Task::obj_cnt;
 
 	// 全てのタスクがDCに割り当てられたら(=タスク配置がすべて終了したら)
 	bool allAssigned(const std::vector<Task*>& ti) {
@@ -173,7 +171,7 @@ namespace allocation_optimize_NS {
 
 		// 最も多くのノードとつながる次数を求める
 		maxDegree = [=](std::vector<DC*> adj){
-			unsigned int max = std::numeric_limits<unsigned int>::min();
+			int max = std::numeric_limits<unsigned int>::min();
 			for (auto d : adj) {
 				//std::cout << d->adjacentNodes.size() << std::endl;
 				if (d->adjacentNodes.size() >= max) max = d->adjacentNodes.size();
@@ -218,22 +216,10 @@ namespace allocation_optimize_NS {
 	class Solution {
 	private:
 		int resultCommCost; int resultCompCost;
-		std::list < std::pair < Task*, DC* >> allocationList; // 各タスクの配置した内訳
 	public:
-		Solution() : resultCommCost{ 0 }, resultCompCost{ 0 } { }
-		Solution(int com, int cmp) : resultCommCost{ com }, resultCompCost{ cmp } { }
-		/*
 		std::pair<int, int> resultCost() {
-		return{ resultCommCost, resultCompCost };
+			return{ resultCommCost, resultCompCost };
 		}
-		*/
-		void manipCommCost(int comm) { resultCommCost += comm; }
-		void manipCompCost(int comp) { resultCompCost += comp; }
-		void regAllocation(Task *t_ptr, DC *d_ptr) {
-			//allocationList.push_back(std::map<Task*,DC*>::value_type(t, d));
-			allocationList.push_back({ t_ptr,d_ptr});
-		}
-		int getResultCost() { return resultCommCost + resultCompCost; }
 		void printAllocations(std::vector<Task*> ti, std::vector<DC*> dj) {
 			for (auto task : ti) std::cout << task->assignNode << std::endl;
 		}
@@ -276,17 +262,44 @@ namespace allocation_optimize_NS {
 
 	void print() {
 		std::cout << "computation_req, communication_req" << std::endl;
-		for (int i = 0; i < N; ++i)
+		for (int i = 0; i < N; ++i) {
 			std::cout << "task" << i << ":" << ti[i]->cmp_r << ", " << ti[i]->cmm_r << std::endl;
-
-		std::cout << std::endl << "computation_costs, capacity, adjacency info" << std::endl;
-		for (auto dc : dj) {
-			std::cout << "DC" << dc->idx << ":" << dc->cmp_c << ", " << dc->capa << " -> { ";
-			for (uint32_t j = 0; j < dc->adjacentNodes.size(); ++j)
-				std::cout << "DC" << dc->adjacentNodes[j].second->idx << " ";
-			std::cout << "}" << std::endl;
 		}
-	}
+
+		std::cout << std::endl << "computation_costs, capacity" << std::endl;
+		for (int j = 0; j < M; ++j) std::cout << "DC" << j << ":"
+			<< dj[j]->cmp_c << ", " << dj[j]->capa << std::endl;
+
+		std::cout << std::endl << "adjacency info" << std::endl;
+		//	unsigned int diff = reinterpret_cast<unsigned int>(dj[1]) - reinterpret_cast<unsigned int>(dj[0]);
+		for (int i = 0; i < M; ++i) {
+			std::cout << "DC" << i << " -> { ";
+			for (int j = 0; j < dj[i]->adjacentNodes.size(); ++j) {
+				//		for (int j = 0; j < M; ++j) {
+				//for (auto a : dj) {
+				//std::cout << (dj[i]-dj[0])  << std::endl;
+				//std::cout << dj[i] << ":" << dj[0]  << std::endl;
+				//uint64_t x = reinterpret_cast<uintptr_t>(dj[i]);
+				//uint64_t y = reinterpret_cast<uintptr_t>(dj[0]);
+				//std::cout << (reinterpret_cast<unsigned int>(x)-reinterpret_cast<unsigned int>(y))  << std::endl;
+				//std::cout << x  << std::endl;
+
+				//		if (dj[i]->adjacentNodes[j].second->idx == j)
+				std::cout << "DC" << dj[i]->adjacentNodes[j].second->idx << " ";
+				//		else 
+				//			std::cout << "-" << " " ;
+
+				//std::cout << i << " ";
+				//std::cout << dj[i]->adjacentNodes[j].second - dj[i]->adjacentNodes[0].second << " ";
+				//for (auto b : a->adjacentNodes) {
+				//	std::cout << b.first << ", " << b.second->idx << std::endl;
+				//}
+			}
+			std::cout << "}" << std::endl;
+
+		}
+
+
 
 		// 		for(auto &a : dj) std::cout << a->cmp_c << " ";
 		// 		std::cout << std::endl;
@@ -310,15 +323,18 @@ namespace allocation_optimize_NS {
 		std::cout << std::endl;
 		}
 		*/
+	}
 
 	bool allocate_task(DC* d, Task* t) {
-		if (d->capa > t->cmp_r) {
+		if (d->capa > t->cmm_r) {
 			// 			d->assigned_tasks.push_back(t);
 			t->assignNode = d;
-			d->capa -= t->cmp_r;
+			d->capa -= t->cmm_r;
 			return true;
 		}
-		else return false;
+		else {
+			return false;
+		}
 	}
 
 	// 要求されたcmp_rに対してキャパシティーの余裕があり且つ最小のコストでたどり着けるノードを探索する
@@ -337,18 +353,33 @@ namespace allocation_optimize_NS {
 
 	// 総当たりによる最適解の探索
 	// Searching of optimal solution by brute force method
-	std::vector<Solution>& brute_force() {
-		int cmpC{ 0 }, cmmC{ 0 }, minCost = std::numeric_limits<int>::max();
-		//int idx, calc_steps = 0;
-		std::vector<Solution> solutions;
+	std::pair<float, int> brute_force() {
+		float res = 0.0f, tmp, min = std::numeric_limits<float>::max();
+		int idx, calc_steps = 0;
 
-		Solution tmpSolution;
+		for (int i = 0; i < N; ++i) {
+			calc_steps++;
+			for (int j = 0; j < M; ++j) {
+				calc_steps++;
+				//tmp = static_cast<float>(min_cmp_cost(dj)*ti[i]->cmp_r);
 
+				for (int k = 0; k < M; ++k) {
+					calc_steps++;
+					/*
+					if(edge[i][k] < min) {
+					min = edge[i][k];
+					idx = k;
+					}
+					*/
+				}
+			}
+			//res += static_cast<float>(edge[i][idx]*ti[i]->cmm_r+tmp);
+		}
 
-		return solutions;
+		return std::pair<float, int>(res, calc_steps);
 	}
 
-	// greedy method
+	// Greedy method
 	std::pair<float, int> greedy() {
 		int cmpC{ 0 }, cmmC{ 0 }, minCost = std::numeric_limits<int>::max();
 		int tmp, idx, calc_steps = 0;
@@ -378,29 +409,28 @@ namespace allocation_optimize_NS {
 		}
 		return std::pair<int, int>(cmpC + cmmC, calc_steps);
 	}
-} // end of namespace allocation_optimize_NS
+} // end of namespace allocation_optimeNS
 
 int main(int argc, char** argv) {
-	namespace OptNS = allocation_optimize_NS;
+	namespace OptNS = allocation_optimeNS;
 
-	//if(argc > 2) allocation_optimize_NS::init(atoi(argv[1]), atoi(argv[2]));
+	//if(argc > 2)  allocation_optimeNS::init(atoi(argv[1]), atoi(argv[2]));
 	//else if(argc == 1) 
-	allocation_optimize_NS::init();
+	OptNS::init();
 
-	allocation_optimize_NS::print();
+	OptNS::print();
 	std::cout << std::endl << "Task amount: " << OptNS::Task::cnt() << ", DC nodes amount: " << OptNS::DC::cnt() << std::endl;
 
 	auto start = std::chrono::system_clock::now();
 
 	std::cout << "================================" << std::endl;
 	std::cout << "Using greedy method:" << std::endl;
-	std::pair<int, int> ans = allocation_optimize_NS::greedy();
+	std::pair<int, int> ans = allocation_optimeNS::greedy();
 	//std::cout << "Using brute force method:" << std::endl;
-	//std::pair<float,int> ans = allocation_optimize_NS::brute_force();
+	//std::pair<float,int> ans = allocation_optimeNS::brute_force();
 	auto end = std::chrono::system_clock::now();
 	auto diff = end - start;
 
-	std::cout << "result: " << ans.first << std::endl;
 	std::cout << "steps: " << ans.second << std::endl;
 	std::cout << "duration time : "
 		<< std::chrono::duration_cast<std::chrono::milliseconds>(diff).count()
