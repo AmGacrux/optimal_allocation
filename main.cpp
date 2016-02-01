@@ -16,6 +16,7 @@
 // 
 
 namespace allocation_optimize_NS {
+
 	// Data center node
 	class DC {
 	private:
@@ -217,6 +218,7 @@ namespace allocation_optimize_NS {
 	// 得られた解のコストの値と配置した内訳を表示
 	class Solution {
 	private:
+		static int obj_cnt;
 		int resultCommCost; int resultCompCost;
 		std::list < std::pair < Task*, DC* >> allocationList; // 各タスクの配置した内訳
 	public:
@@ -231,13 +233,14 @@ namespace allocation_optimize_NS {
 		void manipCompCost(int comp) { resultCompCost += comp; }
 		void regAllocation(Task *t_ptr, DC *d_ptr) {
 			//allocationList.push_back(std::map<Task*,DC*>::value_type(t, d));
-			allocationList.push_back({ t_ptr,d_ptr});
+			allocationList.push_back({ t_ptr, d_ptr });
 		}
 		int getResultCost() { return resultCommCost + resultCompCost; }
 		void printAllocations(std::vector<Task*> ti, std::vector<DC*> dj) {
 			for (auto task : ti) std::cout << task->assignNode << std::endl;
 		}
 	};
+	int Solution::obj_cnt{ 0 };
 
 	// Task数NとDCノード数Mが与えられた場合、ランダムに生成したcmp_r/c, cmm_r/cの値を使って初期化する
 	// Input the amout of Task N and DC node M,
@@ -288,38 +291,40 @@ namespace allocation_optimize_NS {
 		}
 	}
 
-		// 		for(auto &a : dj) std::cout << a->cmp_c << " ";
-		// 		std::cout << std::endl;
-		/*
-		std::cout << "communication_costs" << std::endl;
-		for(int i = 0; i < N; ++i) {
-		for(int j = 0; j < M; ++j) {
-		std::cout << "t" << i << "->d" << j << "=";
-		std::cout << edge[i][j] << " ";
-		}
-		std::cout << std::endl;
-		}
-
-		std::cout << std::endl << "path(capacity, integrated cost, flow)" << std::endl;
-		for(int i = 0; i < N; ++i) {
-		for(int j = 0; j < M; ++j) {
-		std::cout << "(" << std::get<0>(path[i][j]) << ", "
-		<< std::get<1>(path[i][j])<< ", "
-		<< std::get<2>(path[i][j]) << ")" << " ";
-		}
-		std::cout << std::endl;
-		}
-		*/
-
-	bool allocate_task(DC* d, Task* t) {
-		if (d->capa > t->cmp_r) {
-			// 			d->assigned_tasks.push_back(t);
-			t->assignNode = d;
-			d->capa -= t->cmp_r;
-			return true;
-		}
-		else return false;
+	// 		for(auto &a : dj) std::cout << a->cmp_c << " ";
+	// 		std::cout << std::endl;
+	/*
+	std::cout << "communication_costs" << std::endl;
+	for(int i = 0; i < N; ++i) {
+	for(int j = 0; j < M; ++j) {
+	std::cout << "t" << i << "->d" << j << "=";
+	std::cout << edge[i][j] << " ";
 	}
+	std::cout << std::endl;
+	}
+
+	std::cout << std::endl << "path(capacity, integrated cost, flow)" << std::endl;
+	for(int i = 0; i < N; ++i) {
+	for(int j = 0; j < M; ++j) {
+	std::cout << "(" << std::get<0>(path[i][j]) << ", "
+	<< std::get<1>(path[i][j])<< ", "
+	<< std::get<2>(path[i][j]) << ")" << " ";
+	}
+	std::cout << std::endl;
+	}
+	*/
+
+	/*
+	bool allocate_task(DC* d, Task* t) {
+	if (d->capa > t->cmp_r) {
+	// 			d->assigned_tasks.push_back(t);
+	t->assignNode = d;
+	d->capa -= t->cmp_r;
+	return true;
+	}
+	else return false;
+	}
+	*/
 
 	// 要求されたcmp_rに対してキャパシティーの余裕があり且つ最小のコストでたどり着けるノードを探索する
 	DC* minCmpCost(int cmp_r, std::vector<DC*>& dj) {
@@ -336,14 +341,14 @@ namespace allocation_optimize_NS {
 	}
 
 	// 総当たりによる最適解の探索
+	// 探索範囲によっては計算が終了しないが絶対に最適解を見つけられる
 	// Searching of optimal solution by brute force method
-	std::vector<Solution>& brute_force() {
+	std::list<Solution>& brute_force() {
 		int cmpC{ 0 }, cmmC{ 0 }, minCost = std::numeric_limits<int>::max();
 		//int idx, calc_steps = 0;
 		std::vector<Solution> solutions;
 
 		Solution tmpSolution;
-
 
 		return solutions;
 	}
@@ -380,6 +385,25 @@ namespace allocation_optimize_NS {
 	}
 } // end of namespace allocation_optimize_NS
 
+class Timer {
+private:
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> start, end;
+public:
+	void timerStart() {
+		start = std::chrono::system_clock::now();
+	}
+	void timerEnd(bool flag) {
+		end = std::chrono::system_clock::now();
+		if (flag) {
+			auto elapse = end - start;
+			std::cout << "duration time : "
+				<< std::chrono::duration_cast<std::chrono::milliseconds>(elapse).count()
+				<< " msec" << std::endl;
+		}
+
+	}
+};
+
 int main(int argc, char** argv) {
 	namespace OptNS = allocation_optimize_NS;
 
@@ -390,24 +414,25 @@ int main(int argc, char** argv) {
 	allocation_optimize_NS::print();
 	std::cout << std::endl << "Task amount: " << OptNS::Task::cnt() << ", DC nodes amount: " << OptNS::DC::cnt() << std::endl;
 
-	auto start = std::chrono::system_clock::now();
+	Timer timer;
 
 	std::cout << "================================" << std::endl;
+	/*
 	std::cout << "Using greedy method:" << std::endl;
+	timer.timerStart();
 	std::pair<int, int> ans = allocation_optimize_NS::greedy();
-	//std::cout << "Using brute force method:" << std::endl;
-	//std::pair<float,int> ans = allocation_optimize_NS::brute_force();
-	auto end = std::chrono::system_clock::now();
-	auto diff = end - start;
+	timer.timerEnd(true);
+	//*/
 
-	std::cout << "result: " << ans.first << std::endl;
-	std::cout << "steps: " << ans.second << std::endl;
-	std::cout << "duration time : "
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(diff).count()
-		<< " msec" << std::endl;
+	std::cout << "Using brute force method:" << std::endl;
+	timer.timerStart();
+	std::list<allocation_optimize_NS::Solution> solutions = allocation_optimize_NS::brute_force();
+	timer.timerEnd(true);
 
+	//std::cout << "result: " << ans.first << std::endl;
+	//std::cout << "steps: " << ans.second << std::endl;
 	int N{};
 	std::cin >> N;
 
-	return int8_t(0);
+	return int32_t(0);
 }
