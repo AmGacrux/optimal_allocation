@@ -1,14 +1,13 @@
-﻿#include <cstdlib>
-#include <chrono>
-#include <cmath>
+﻿#include <chrono>
 #include <iostream>
 #include <limits>
-#include <map>
 #include <list>
+#include <map>
+#include <stack>
+#include <string>
 #include <tuple>
 #include <random>
 #include <vector>
-#include <stack>
 
 // Allocation problem and algorithms (under construction)
 // 
@@ -95,7 +94,7 @@ namespace allocation_optimize_NS {
 
 		//void printAllocations(std::vector<Task*> ti) {
 		void printAllocations() {
-			for (int i = 0; i < ti.size(); ++i)
+			for (uint32_t i = 0; i < ti.size(); ++i)
 				std::cout << "Task" << i << ": " << "DC" << ti[i]->assignNode << std::endl;
 		}
 
@@ -206,6 +205,9 @@ namespace allocation_optimize_NS {
 		*/
 
 		void print() {
+			std::cout << std::endl << "Task amount: " << Problem::Task::cnt()
+				<< ", DC nodes amount: " << Problem::DC::cnt() << std::endl;
+
 			std::cout << "computation_req, communication_req" << std::endl;
 			for (int i = 0; i < N; ++i)
 				std::cout << "task" << i << ":" << ti[i]->cmp_r << ", " << ti[i]->cmm_r << std::endl;
@@ -217,20 +219,17 @@ namespace allocation_optimize_NS {
 					std::cout << "DC" << dc->adjacentNodes[j].second->idx << " ";
 				std::cout << "}" << std::endl;
 			}
+			for (auto dc : dj) {
+				std::cout << "DC" << dc->idx << std::endl;
+			}
 		}
 
 		// 要求されたcmp_rに対してキャパシティーの余裕があり且つ最小のコストでたどり着けるノードを探索する
-		DC* minCmpCost(int cmp_r, std::vector<DC*>& dj) {
+		DC* minCmpCost(int cmp_r) {//, std::vector<DC*> dj) {
 			auto min = std::numeric_limits<int>::max();
 			int minIdx{};
 
-			std::cout << "Temporary: MinCmpCost" << std::endl;
-			//for (auto dc : dj) {
-			std::cout << "hoge:"<< dj[0]->idx << std::endl;
-			for (int j = 0; j < dj.size(); ++j) {
-				DC* dc = dj[j];
-				// Issue: どうしてdc->idxだけでは範囲外となるのか(ちょうどdj.size()分だけ大きい)
-				std::cout << (dc->idx-dj.size()) << std::endl;
+			for (auto dc : dj) {
 				if (dc->cmp_c <= min && dc->capa >= cmp_r) {
 					min = dc->cmp_c;
 					minIdx = dc->idx;
@@ -238,9 +237,8 @@ namespace allocation_optimize_NS {
 				// ↓間違い、すべてのタスクを配置できることが前提条件で与えられている
 				// else // 配置できるノードが一つもなかったら
 			}
-			std::cout << "minimum: " << minIdx << std::endl;
-			std::cout << "Temporary: MinCmpCost End" << std::endl;
-			//return dj[minIdx-dj.size()];
+			std::cout << "cmp_r= " << cmp_r << std::endl;
+			std::cout << "minIdx DC[" << minIdx << "], cmp_c= " << dj[minIdx]->cmp_c << ", capa= " << dj[minIdx]->capa << std::endl;
 			return dj[minIdx];
 		}
 
@@ -294,14 +292,12 @@ namespace allocation_optimize_NS {
 		uint32_t cnt{ 0 };
 		for (cnt = 0; cnt < pow(p->dj.size(), p->ti.size()); ++cnt) { // 全パターンはmΠn(m=dc amount,n=task amount)
 			int cmpC{ 0 }, cmmC{ 0 }, minCost = std::numeric_limits<int>::max();
-			std::cout << "Temporary: Init()" << std::endl;
-			p->init(); // グラフ状況の初期化
+			//		p->init(); // グラフ状況の初期化
 			Problem::Solution tmpSolution;
 			for (auto task : p->ti) {
-			std::cout << "Temporary: Search()" << std::endl;
 				if (p->allAssigned()) break;
-				Problem::DC *tmpMinimumNode = p->minCmpCost(task->cmp_r, p->dj);
-			std::cout << "Temporary: Search() End" << std::endl;
+				Problem::DC *tmpMinimumNode = p->minCmpCost(task->cmp_r);
+				std::cout << "Temporary: Search() End" << std::endl;
 				tmpSolution.regAllocation(task, tmpMinimumNode);
 			}
 			solutions.push_back(tmpSolution);
@@ -315,13 +311,13 @@ namespace allocation_optimize_NS {
 	// greedy method
 	std::pair<int, int> greedy(Problem *p) {
 		int cmpC{ 0 }, cmmC{ 0 }, minCost = std::numeric_limits<int>::max();
-		int tmp, idx, calc_steps = 0;
+		int calc_steps = 0;
 		Problem::DC* currPosition = nullptr; // 最後に配置したノードの番号
 
 		// 未完成：その時点で選べる最小コストのノードを選ぶようになっていない
 
 		// 最初に配置するスタート地点の設定
-		currPosition = p->minCmpCost(0, p->dj);
+		currPosition = p->minCmpCost(0);
 		// std::cout << currPosition->idx << std::endl;
 
 		// 隣接するなかで最小のノードを選ぶ
@@ -350,32 +346,51 @@ namespace allocation_optimize_NS {
 int main(int argc, char** argv) {
 	//if(argc > 2) allocation_optimize_NS::init(atoi(argv[1]), atoi(argv[2]));
 	//else if(argc == 1) 
+
 	allocation_optimize_NS::Problem *p = new allocation_optimize_NS::Problem();
 
 	p->init();
 	p->print();
-	std::cout << std::endl << "Task amount: " << allocation_optimize_NS::Problem::Task::cnt()
-		<< ", DC nodes amount: " << allocation_optimize_NS::Problem::DC::cnt() << std::endl;
 
-	allocation_optimize_NS::Problem::Timer timer;
+	//std::istringstream cmd("");
+	std::string cmd;
+	while (true) {
+		std::cout << "Choose a search algorithm. (g:Greedly, b:Brute force, ... , q:Quit this program) > ";
+		std::cin >> cmd;
 
-	std::cout << "================================" << std::endl;
-	///*
-	std::cout << "Using greedy method:" << std::endl;
-	timer.timerStart();
-	//std::pair<int, int> ans = allocation_optimize_NS::greedy(&p);
-	timer.timerEnd(true);
-	//*/
+		if (cmd == "q")
+			return uint32_t(0);
 
-	std::cout << "Using brute force method:" << std::endl;
-	timer.timerStart();
-	std::list<allocation_optimize_NS::Problem::Solution> solutions = allocation_optimize_NS::brute_force(p);
-	timer.timerEnd(true);
+		//std::cout << "================================" << std::endl;
+		///*
+		else if (cmd == "g") {
+			allocation_optimize_NS::Problem::Timer timer;
+			std::cout << "Using greedy method:" << std::endl;
+			timer.timerStart();
+			std::pair<int, int> ans = allocation_optimize_NS::greedy(p);
+			timer.timerEnd(true);
 
-	//std::cout << "result: " << ans.first << std::endl;
-	//std::cout << "steps: " << ans.second << std::endl;
-	int N{};
-	std::cin >> N;
+			std::cin >> cmd;
+
+			return uint32_t(0);
+		}
+		else if (cmd == "b") {
+			allocation_optimize_NS::Problem::Timer timer;
+			std::cout << "Using brute force method:" << std::endl;
+			std::list<allocation_optimize_NS::Problem::Solution> solutions = allocation_optimize_NS::brute_force(p);
+			timer.timerEnd(true);
+
+			std::cin >> cmd;
+
+			return uint32_t(0);
+		}
+		else {
+			std::cout << "Invalid command input..." << std::endl;
+			continue;
+		}
+		//std::cout << "result: " << ans.first << std::endl;
+		//std::cout << "steps: " << ans.second << std::endl;
+	}
 
 	return int32_t(0);
 }
