@@ -21,18 +21,19 @@ namespace allocation_optimize_NS {
 		class DC {
 		private:
 			static int obj_cnt;
-		public:
-			int idx;
-			int cmp_c; // computation cost
-			int capa;  // capacity
-			std::vector<std::pair<int, DC*>> adjacentNodes;
-
-			explicit DC(int cmp) {
+			explicit DC(int cmp) { // 不要なコンストラクタ 
 				idx = obj_cnt;
 				cmp_c = cmp;
 				capa = 0;
 				obj_cnt++;
 			}
+
+		public:
+			int idx; // インデックスはオブジェクトの生成順に番号が振られる
+			int cmp_c; // computation cost
+			int capa;  // capacity
+			std::vector<std::pair<int, DC*>> adjacentNodes;
+
 			DC(int cmp, int c) {
 				idx = obj_cnt;
 				cmp_c = cmp;
@@ -47,15 +48,15 @@ namespace allocation_optimize_NS {
 		class Task {
 		private:
 			static int obj_cnt;
-		public:
-			int idx, cmp_r, cmm_r; // computation_requiremt & communication_requirement
-			DC* assignNode;
-			Task() {
+			Task() { // 不要なコンストラクタ 
 				idx = obj_cnt;
 				cmp_r = 0;
 				cmm_r = 0;
 				obj_cnt++;
 			}
+		public:
+			int idx, cmp_r, cmm_r; // computation_requiremt & communication_requirement
+			DC* assignNode;
 			Task(int cmp, int cmm) {
 				idx = obj_cnt;
 				cmp_r = cmp;
@@ -73,6 +74,7 @@ namespace allocation_optimize_NS {
 		class Solution {
 		private:
 			static int obj_cnt;
+		protected:
 			int resultCommCost; int resultCompCost;
 			std::list < std::pair < Task*, DC* >> allocationList; // 各タスクの配置した内訳
 		public:
@@ -90,13 +92,26 @@ namespace allocation_optimize_NS {
 				allocationList.push_back({ t_ptr, d_ptr });
 			}
 			int getResultCost() { return resultCommCost + resultCompCost; }
-		};
 
-		//void printAllocations(std::vector<Task*> ti) {
-		void printAllocations() {
-			for (uint32_t i = 0; i < ti.size(); ++i)
-				std::cout << "Task" << i << ": " << "DC" << ti[i]->assignNode << std::endl;
-		}
+			//void printAllocations(std::vector<Task*> ti) {
+			void print() {
+				printResultCost();
+				printAllocations();
+			}
+			void printResultCost() {
+				std::cout << "Total computation cost = " << resultCompCost << std::endl;
+				std::cout << "Total cost = " << getResultCost() << std::endl;
+			}
+			void printAllocations() {
+				//auto std::list<std::pair<Task*, DC*>>::iterator it;
+				//auto it = allocationList.begin();
+				for (auto idx : allocationList) {
+					//for (uint32_t i = 0; i < allocationList.size(); ++i)
+					//std::cout << "Task" << allocationList << ": " << "DC" << allocationList[i]-> << std::endl;
+					std::cout << "Task" << idx.first << ": " << "DC" << idx.second << std::endl;
+				}
+			}
+		};
 
 		// 全てのタスクがDCに割り当てられたら(=タスク配置がすべて終了したら)
 		//bool allAssigned(const std::vector<Task*>& ti) {
@@ -219,9 +234,6 @@ namespace allocation_optimize_NS {
 					std::cout << "DC" << dc->adjacentNodes[j].second->idx << " ";
 				std::cout << "}" << std::endl;
 			}
-			for (auto dc : dj) {
-				std::cout << "DC" << dc->idx << std::endl;
-			}
 		}
 
 		// 要求されたcmp_rに対してキャパシティーの余裕があり且つ最小のコストでたどり着けるノードを探索する
@@ -275,7 +287,7 @@ namespace allocation_optimize_NS {
 			}
 			if (min_ptr != nullptr) {
 				std::cout << "optimal cost value: " << min_ptr->getResultCost() << std::endl;
-				printAllocations();
+				//printAllocations();
 			}
 		}
 
