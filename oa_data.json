@@ -1,0 +1,99 @@
+{
+    "Graph": {
+        "Task": [
+            {
+                "idx": 0,
+                "cmp_r": 4,
+                "cmm_r": 10,
+                "assignNode": null
+            },
+            {
+                "idx": 1,
+                "cmp_r": 7,
+                "cmm_r": 15,
+                "assignNode": null
+
+            },
+            {
+                "idx": 2,
+                "cmp_r": 8,
+                "cmm_r": 5,
+                "assignNode": null
+
+            },
+            {
+                "idx": 3,
+                "cmp_r": 5,
+                "cmm_r": 10,
+                "assignNode": null
+            }
+        ]
+    },
+
+    "DC": [
+        {
+            "idx": 0,
+            "cmp_c": 10,
+            "capa": 5,
+            "adjacentNodes": [
+                { "cmm_c": 3, "adjIdx": 1 },
+                { "cmm_c": 2, "adjIdx": 3 },
+                { "cmm_c": 4, "adjIdx": 4 }
+            ]
+        },
+        {
+            "idx": 1,
+            "cmp_c": 14,
+            "capa": 7,
+            "adjacentNodes": [
+                { "cmm_c": 3, "adjIdx": 0 },
+                { "cmm_c": 3, "adjIdx": 2 },
+                { "cmm_c": 4, "adjIdx": 3 }
+            ]
+        },
+        {
+            "idx": 2,
+            "cmp_c": 8,
+            "capa": 3,
+            "adjacentNodes": [
+                { "cmm_c": 3, "adjIdx": 1 },
+                { "cmm_c": 6, "adjIdx": 3 },
+                { "cmm_c": 3, "adjIdx": 4 },
+                { "cmm_c": 1, "adjIdx": 5 }
+            ]
+        },
+        {
+            "idx": 3,
+            "cmp_c": 15,
+            "capa": 8,
+            "adjacentNodes": [
+                { "cmm_c": 3, "adjIdx": 1 },
+                { "cmm_c": 6, "adjIdx": 3 },
+                { "cmm_c": 3, "adjIdx": 4 },
+                { "cmm_c": 1, "adjIdx": 5 }
+            ]
+        },
+        {
+            "idx": 4,
+            "cmp_c": 8,
+            "capa": 3,
+            "adjacentNodes": [
+                { "cmm_c": 3, "adjIdx": 1 },
+                { "cmm_c": 6, "adjIdx": 3 },
+                { "cmm_c": 3, "adjIdx": 4 },
+                { "cmm_c": 1, "adjIdx": 5 }
+            ]
+        },
+        {
+            "idx": 5,
+            "cmp_c": 8,
+            "capa": 3,
+            "adjacentNodes": [
+                { "cmm_c": 3, "adjIdx": 1 },
+                { "cmm_c": 6, "adjIdx": 3 },
+                { "cmm_c": 3, "adjIdx": 4 },
+                { "cmm_c": 1, "adjIdx": 5 }
+            ]
+        }
+    ]
+}
