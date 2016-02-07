@@ -9,6 +9,9 @@
 #include <random>
 #include <vector>
 
+#include <picojson.h> // for read a json file
+#include <fstream>
+
 // Allocation problem and algorithms (under construction)
 // 
 // Compile Requirement: g++ -std=c++11 allocation.cpp
@@ -17,7 +20,6 @@
 namespace allocation_optimize_NS {
 
 class Problem {
-	// Data center node
 public:
 	class DC {
 	private:
@@ -59,7 +61,7 @@ public:
 			assignNode = nullptr;
 			obj_cnt++;
 		}
-		*/
+		 */
 	public:
 		int idx, cmp_r, cmm_r; // computation_requiremt & communication_requirement
 		DC* assignNode;
@@ -134,23 +136,22 @@ public:
 		for (auto task : ti) if (task->assignNode == nullptr) flag = false;
 		return flag;
 	}
+private:
+	int N{}, M{}; // Task amount N & DC node amount M
+	Problem::DC *maxDegree;
 
 	// Set of DC & Task
 public:
-	int N, M; // Task amount N & DC node amount M
-	int maxDegree{};
 	std::vector<Task*> ti; // workflow
-	std::vector<DC*> dj; // set of data centers (=network topology)
+	std::vector<Problem::DC*> dj; // set of data centers (=network topology)
 	std::vector<Solution*> solutions; // set of data centers (=network topology)
-
 	// N,Mを指定しなければプリセットを用いて初期化する
 	// If you had not set the values of N and M, to initialize by preset status.
+
 	Problem() {
-		// Task list initialize
-		// Cmp_R, Cmm_R
+		// Task list initialize => Cmp_R, Cmm_R
 		ti = { new Task(4, 10), new Task(7, 15), new Task(8, 5), new Task(5, 10) };
-		// DC nodes initialize
-		// Cmp_C, Capacity
+		// DC nodes initialize => Cmp_C, Capacity
 		dj = { new DC(10, 5), new DC(14, 7), new DC(8, 3), new DC(15, 8), new DC(20, 10), new DC(9, 8) };
 
 		N = ti.size(); M = dj.size();
@@ -188,15 +189,39 @@ public:
 		};
 
 		// 最も多くのノードとつながる次数を求める
-		maxDegree = [=](std::vector<DC*> adj){
+		maxDegree = [=](std::vector<DC*> adjNodes){
 			unsigned int max = std::numeric_limits<unsigned int>::min();
-			for (auto d : adj) {
+			DC* tmp;
+			for (auto dst : adjNodes) {
 				//std::cout << d->adjacentNodes.size() << std::endl;
-				if (d->adjacentNodes.size() >= max) max = d->adjacentNodes.size();
+				if (dst->adjacentNodes.size() >= max) {
+					max = dst->adjacentNodes.size();
+					tmp = dst;
+				}
 			}
-			return max;
+			return tmp;
 		}(dj);
+		std::cout << "max degree node: DC" << maxDegree->idx << " has " << maxDegree->adjacentNodes.size() << " nodes." << std::endl;
 	}
+
+	// 未完成
+	// Todo: 読み込んだjsonファイルからProblemクラスを設定するコンストラクタ
+	Problem(std::string file) {
+		std::cout << "Input filename: " << file << std::endl;
+		picojson::value root;
+		// 入力するファイルはプログラムと同じ階層にある
+		std::ifstream stream(file);
+		stream >> root;
+		picojson::object problem = root.get<picojson::object>()["Problem"].get<picojson::object>();
+		//std::cout << problem["Graph"].get<std::string>() << std::endl;
+		//picojson::array ti = task["idx"].get<picojson::array>();
+		picojson::array ti = problem["Task"].get<picojson::array>();
+		  // arrayはstd::vector<picojson::value>なのでrange-based forが使える!
+		  for (picojson::value task: ti) {
+		    std::cout << task.get("idx") << std::endl;
+		  }
+	}
+
 
 	~Problem() {
 		for(auto task : ti) {
@@ -210,8 +235,7 @@ public:
 		}
 	}
 
-	// Todo: 読み込んだjsonファイルからProblemクラスを設定するコンストラクタ
-	// Problem(pointer of input file);
+
 
 	// Task数NとDCノード数Mが与えられた場合、ランダムに生成したcmp_r/c, cmm_r/cの値を使って初期化する
 	// Input the amout of Task N and DC node M,
@@ -242,7 +266,7 @@ public:
 		static_cast<float>(dj[j]->cmp_c+edge[i][j]),
 		0
 	}
-*/
+	 */
 
 	// Task数NとDCノード数Mが与えられた場合、ランダムに生成したcmp_r/c, cmm_r/cの値を使って初期化する
 	// Input the amout of Task N and DC node M,
@@ -295,6 +319,7 @@ public:
 				std::cout << "DC" << dc->adjacentNodes[j].second->idx << " ";
 			std::cout << "}" << std::endl;
 		}
+		std::cout << std::endl;
 	}
 
 	// 要求されたcmp_rに対してキャパシティーの余裕があり且つ最小のコストでたどり着けるノードを探索する
@@ -329,6 +354,7 @@ public:
 				std::cout << "duration time : " << std::chrono::duration_cast<std::chrono::milliseconds>(elapse).count() << " msec" << std::endl;
 			}
 		}
+
 	};
 	//Problem::Solution*
 	//void optimalAllocationPattern(std::list<Problem::Solution> solutions) {
@@ -418,11 +444,16 @@ int main(int argc, char** argv) {
 	//if(argc > 2) allocation_optimize_NS::init(atoi(argv[1]), atoi(argv[2]));
 	//else if(argc == 1) 
 
+	//if(argc == 2) std::string file{argv[1]};
+	std::string file{"dataset_2.json"};
 
 	//std::istringstream cmd("");
 	std::string cmd;
 	while (true) {
-		allocation_optimize_NS::Problem *p = new allocation_optimize_NS::Problem();
+allocation_optimize_NS::Problem *p{nullptr};
+
+		if(!file.empty()) p = new allocation_optimize_NS::Problem(file);
+		else if(argc < 1) p = new allocation_optimize_NS::Problem();
 		p->print();
 
 		std::cout << "Choose a search algorithm. (g:Greedly, b:Brute force, ... , q:Quit this program) > ";
@@ -430,6 +461,7 @@ int main(int argc, char** argv) {
 
 		if (cmd == "q") {
 			std::cout << "end." << std::endl;
+			delete p;
 			return uint32_t(0);
 		}
 
@@ -443,8 +475,8 @@ int main(int argc, char** argv) {
 			timer.timerEnd(true);
 
 			std::cout << "greedy optimization is end." << std::endl;
-
 			delete p;
+
 			continue;
 
 			//std::cin >> cmd;
@@ -464,6 +496,8 @@ int main(int argc, char** argv) {
 		}
 		else {
 			std::cout << "Invalid command input..." << std::endl;
+
+			delete p;
 			continue;
 		}
 		//std::cout << "result: " << ans.first << std::endl;
