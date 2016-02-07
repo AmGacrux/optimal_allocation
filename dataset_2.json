@@ -1,6 +1,5 @@
 {
-    "Problem": 
-    {
+    "Problem": {
         "Task": [
             {
                 "idx": 0,
@@ -13,33 +12,37 @@
                 "cmp_r": 2,
                 "cmm_r": 2,
                 "assignNode": null
-
             },
             {
                 "idx": 2,
                 "cmp_r": 3,
                 "cmm_r": 3,
                 "assignNode": null
-                }
-                    ]
-    },
-
-    "DC": [
-        {
-            "idx": 0,
-            "cmp_c": 5,
-            "capa": 3,
-            "adjacentNodes": [
-                { "cmm_c": 5, "adjIdx": 0 },
-            ]
-        },
-        {
-            "idx": 1,
-            "cmp_c": 2,
-            "capa": 1,
-            "adjacentNodes": [
-                { "cmm_c": 5, "adjIdx": 1 },
-            ]
-        }
-            ]
+            }
+        ],
+        "DC": [
+            {
+                "idx": 0,
+                "cmp_c": 5,
+                "capa": 3,
+                "adjacentNodes": [
+                    {
+                        "cmm_c": 5,
+                        "adjIdx": 0
+                    }
+                ]
+            },
+            {
+                "idx": 1,
+                "cmp_c": 2,
+                "capa": 1,
+                "adjacentNodes": [
+                    {
+                        "cmm_c": 5,
+                        "adjIdx": 1
+                    }
+                ]
+            }
+        ]
+    }
 }
