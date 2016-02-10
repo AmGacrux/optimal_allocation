@@ -9,22 +9,23 @@
 #include <tuple>
 #include <random>
 #include <vector>
+#include <queue>
 
 #include "picojson.h" // for read a json file
 
 #include "problem.h" // 自作クラスのヘッダ
 
 // Allocation problem and algorithms (under construction)
-// 
+//
 // Compile Requirement: g++ -std=c++11 allocation.cpp
-// 
+//
 
 int main(int argc, char** argv) {
 	//if(argc > 2) allocation_optimize_NS::init(atoi(argv[1]), atoi(argv[2]));
-	//else if(argc == 1) 
+	//else if(argc == 1)
 
-	std::string file{"dataset_2.json"};
-	//std::string file{};
+	//std::string file{"dataset_2.json"};
+	std::string file{};
 	if(argc > 1) file = argv[1];
 
 	//std::istringstream cmd("");
@@ -65,12 +66,12 @@ int main(int argc, char** argv) {
 		else if(cmd == "b") {
 			allocation_optimize_NS::Problem::Timer timer;
 			std::cout << "Using brute force method:" << std::endl;
-			//std::list<allocation_optimize_NS::Problem::Solution> solutions = allocation_optimize_NS::brute_force(p);
+			std::list<allocation_optimize_NS::Problem::Solution> solutions = allocation_optimize_NS::brute_force(p);
 			timer.timerEnd(true);
-
+			for(auto s : solutions)  std::cout << s.getResultCost() << std::endl;
 			delete p;
-			continue;
 
+			continue;
 			//std::cin >> cmd;
 			//return uint32_t(0);
 		}

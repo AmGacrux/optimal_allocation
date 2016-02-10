@@ -94,9 +94,14 @@ public:
 		 */
 		void manipCommCost(int comm) { resultCommCost += comm; }
 		void manipCompCost(int comp) { resultCompCost += comp; }
-		void regAllocation(Task *t_ptr, DC *d_ptr) {
+		int regAllocation(Task *t_ptr, DC *d_ptr) {
 			//allocationList.push_back(std::map<Task*,DC*>::value_type(t, d));
-			allocationList.push_back({ t_ptr, d_ptr });
+			if(d_ptr->capa >= t_ptr->cmp_r) {
+				allocationList.push_back({ t_ptr, d_ptr });
+				d_ptr->capa -= t_ptr->cmp_r;
+				return 0;
+			}
+			else return 1;
 		}
 		int getResultCost() { return resultCommCost + resultCompCost; }
 
@@ -202,9 +207,9 @@ public:
 		}(dj);
 	}
 
-	// Todo: 読み込んだjsonファイルからProblemクラスを設定するコンストラクタ
+	// 読み込んだjsonファイルからProblemクラスを設定するコンストラクタ
 	Problem(std::string file) {
-		std::cout << "Input filename: " << file << std::endl;
+		std::cout << "Input filename: " << file << std::endl << std::endl;
 		std::ifstream stream(file);
 		if(!stream.is_open()) exit(-1);
 		picojson::value root; // json file root
@@ -226,10 +231,9 @@ public:
 			int cmp_c = static_cast<int>(obj["cmp_c"].get<double>());
 			int capa = static_cast<int>(obj["capa"].get<double>());
 			dj.push_back(new DC(cmp_c, capa));
-
 		}
 
-		// いったん、DCのコンテナであるdjにノード情報を格納してから出ないと
+		// いったんDCのコンテナであるdjにノード情報を格納してから出ないと
 		// 互いの隣接情報を設定できないので分けてある
 		for(uint32_t j = 0; j < dc.size(); ++j) {
 			picojson::array adjacentNodes = dc[j].get<picojson::object>()["adjacentNodes"].get<picojson::array>();
@@ -241,10 +245,8 @@ public:
 				dj[j]->adjacentNodes.push_back({ cmm_c, getDCIdx(adjIdx) });
 			}
 		}
-
 		N = ti.size(); M = dj.size();
 	}
-
 
 	~Problem() {
 		for(auto task : ti) {
@@ -328,7 +330,7 @@ public:
 	 */
 
 	void print() {
-		std::cout << std::endl << "Task amount: " << Problem::Task::cnt()
+		std::cout << "Task amount: " << Problem::Task::cnt()
 		<< ", DC nodes amount: " << Problem::DC::cnt() << std::endl;
 
 		std::cout << "computation_req, communication_req" << std::endl;
@@ -339,6 +341,7 @@ public:
 		for (auto dc : dj) {
 			std::cout << "DC" << dc->idx << ":" << dc->cmp_c << ", " << dc->capa << " -> { ";
 			for (uint32_t j = 0; j < dc->adjacentNodes.size(); ++j)
+				//std::cout << "DC" << dc->adjacentNodes[j].second->idx << "(" << dc->adjacentNodes[j].first << ") ";
 				std::cout << "DC" << dc->adjacentNodes[j].second->idx << "(" << dc->adjacentNodes[j].first << ") ";
 			std::cout << "}" << std::endl;
 		}
@@ -407,8 +410,99 @@ int Problem::Solution::obj_cnt;
 // 総当たりによる最適解の探索
 // 探索範囲によっては計算が終了しないが絶対に最適解を見つけられる
 // Searching of optimal solution by brute force method
+/*
+std::list<Problem::Solution> brute_force(Problem *p) {
+	Problem initialState = *p;
+	Problem tmpProblem = *p;
+	std::list<Problem::Solution> solutions; // 解の集合
+
+	uint32_t cnt{ 0 };
+	//for (cnt = 0; cnt < pow(p->dj.size(), p->ti.size()); ++cnt) { // 全パターンはmΠn(m=dc amount,n=task amount)+alpha
+
+	//while(!tmpProblem.allAssigned()) {
+		Problem::Solution tmpSolution;
+		//int cmpC{ 0 }, cmmC{ 0 }, minCost = std::numeric_limits<int>::max();
+		//		p->init(); // グラフ状況の初期化
+		for (auto task : tmpProblem.ti) {
+			int assignStatus = -1;
+			for(auto dc : tmpProblem.dj) {
+			//if (p->allAssigned()) break;
+			//Problem::DC *tmpMinimumNode = p->minCmpCost(task->cmp_r);
+				assignStatus = tmpSolution.regAllocation(task, dc);
+				if(assignStatus==0) {
+					std::cout << "Task" << task->idx << " assigned to DC" << dc->idx << std::endl;
+					break;
+				}
+			}
+			if(assignStatus==1) break; // もう配置できない
+		}
+
+		//noneAllocatableNodes()
+	//	if([=]()->bool{}()) break;
+
+		//solutions.push_back(tmpSolution);
+		//tmpProblem = *p;
+	//}
+	std::cout << "Patterns of solution: " << cnt << std::endl;
+	//tmpProblem.optimalAllocationPattern();
+	//solutions.push_back(tmpSolution);
+	p->optimalAllocationPattern();
+
+	return solutions;
+}
+*/
+
+// 深さ優先探索で与えられた2つのノード間の経路を調べる
+// この探索で得られた経路は最小cmm_cとは限らないので注意
+std::list<Problem::DC *> dfsSearch(Problem *p, Problem::DC *src, Problem::DC *dst) {
+	std::list<Problem::DC *> path{};
+	std::stack<Problem::DC *> q;
+
+	q.push(src); // q0 push
+
+	std::cout << q.top()->idx << std::endl;
+
+	std::list<Problem::DC *> visitedMemory;
+	auto isVisited = [=](Problem::DC *v, std::list<Problem::DC *> mem) {
+		for(auto visited : mem) {
+			if(visited->idx == v->idx) return true;
+		}
+		return false;
+	};
+
+	while(!q.empty()) {
+		Problem::DC *v = q.top();
+		visitedMemory.push_back(v);
+		path.push_back(v);
+		q.pop();
+
+		if(v->idx == dst->idx) {
+			break;
+		}
+		else {
+			for(auto adj : v->adjacentNodes) {
+				if(!isVisited(adj.second, visitedMemory)) q.push(adj.second);
+			}
+		}
+		v = nullptr;
+	}
+
+	for(auto dc : path) {
+		std::cout << dc->idx << std::endl;
+	}
+
+	return path;
+}
+
 std::list<Problem::Solution> brute_force(Problem *p) {
 	std::list<Problem::Solution> solutions; // 解の集合
+
+	std::list<Problem::DC *> path{};
+	//path = dfsSearch(p, p->dj[0], p->dj[p->dj.size()-1]);
+	path = dfsSearch(p, p->dj[p->dj.size()-1], p->dj[0]);
+
+	int n{};
+	std::cin >> n;
 
 	uint32_t cnt{ 0 };
 	for (cnt = 0; cnt < pow(p->dj.size(), p->ti.size()); ++cnt) { // 全パターンはmΠn(m=dc amount,n=task amount)
@@ -428,6 +522,8 @@ std::list<Problem::Solution> brute_force(Problem *p) {
 
 	return solutions;
 }
+
+
 
 // greedy method
 std::pair<int, int> greedy(Problem *p) {
@@ -462,8 +558,6 @@ std::pair<int, int> greedy(Problem *p) {
 	return std::pair<int, int>(cmpC + cmmC, calc_steps);
 }
 
-} // end of namespace allocation_optimize_NS
-
-
+} /* allocation_optimize_NS */
 
 #endif /* PROBLEM_H_ */
