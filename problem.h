@@ -108,7 +108,6 @@ public:
 		}
 		int getResultCost() { return resultCommCost + resultCompCost; }
 
-		//void printAllocations(std::vector<Task*> ti) {
 		void print() {
 			printResultCost();
 			printAllocation();
@@ -126,6 +125,10 @@ public:
 				//std::cout << "Task" << allocationList << ": " << "DC" << allocationList[i]-> << std::endl;
 				std::cout << "Task" << pair.first->idx << " : " << "DC" << pair.second->idx << std::endl;
 			}
+			std::cout << std::endl;
+		}
+		int calcTotalCost() {
+
 		}
 	};
 
@@ -585,7 +588,10 @@ Problem::Solution* greedy(Problem *p) {
 		}
 
 	solution->printAllocation();
-	std::cout << std::endl;
+
+	// 配置したノード間ごとにパスを算出して格納
+	std::list<Problem::DC *> path{};
+	path = dfsSearch(p, p->dj[2], p->dj[0]);
 
 	return solution;
 }

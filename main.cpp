@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
 			//return uint32_t(0);
 		}
 		else {
+
 			std::cout << "Invalid command input..." << std::endl;
 
 			delete p;
