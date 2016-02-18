@@ -1,4 +1,4 @@
-﻿/*
+/*
  * problem.h
  *
  *  Created on: 2016/02/08
@@ -204,7 +204,7 @@ public:
 	DC* getMaxDegreeNode() {
 		return [=](std::vector<DC*> adjNodes){
 			unsigned int max = std::numeric_limits<unsigned int>::min();
-			DC* tmp{};
+			DC* tmp;
 			for (auto dst : adjNodes) {
 				//std::cout << d->adjacentNodes.size() << std::endl;
 				if (dst->adjacentNodes.size() >= max) {

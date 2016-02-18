@@ -21,15 +21,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
-    <None Include="dataset_1.json" />
-    <None Include="dataset_2.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="picojson.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="problem.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
