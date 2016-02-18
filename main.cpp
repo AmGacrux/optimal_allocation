@@ -1,4 +1,4 @@
-﻿#include <chrono>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	//if(argc > 2) allocation_optimize_NS::init(atoi(argv[1]), atoi(argv[2]));
 	//else if(argc == 1)
 
-	std::string file{"dataset_2.json"};
+	std::string file{"dataset_1.json"};
 	//std::string file{};
 	if(argc > 1) file = argv[1];
 
@@ -52,11 +52,12 @@ int main(int argc, char** argv) {
 			allocation_optimize_NS::Problem::Timer timer;
 			std::cout << "Using greedy method:" << std::endl;
 			timer.timerStart();
+
 			//std::pair<int, int> ans = allocation_optimize_NS::greedy(p);
 			allocation_optimize_NS::Problem::Solution* ans = allocation_optimize_NS::greedy(p);
-			timer.timerEnd(true);
 
-			std::cout << "greedy optimization is end." << std::endl;
+			timer.timerEnd(true);
+			std::cout << "greedy optimization is end." << std::endl << std::endl;
 
 			delete ans;
 			delete p;
@@ -69,9 +70,11 @@ int main(int argc, char** argv) {
 		else if(cmd == "b") {
 			allocation_optimize_NS::Problem::Timer timer;
 			std::cout << "Using brute force method:" << std::endl;
-			//std::list<allocation_optimize_NS::Problem::Solution> solutions = allocation_optimize_NS::brute_force(p);
+
+			std::list<allocation_optimize_NS::Problem::Solution> ans = allocation_optimize_NS::brute_force(p);
 			timer.timerEnd(true);
-			for(auto s : solutions)  std::cout << s.getResultCost() << std::endl;
+
+			for (auto s : ans)  std::cout << s.getResultCost() << std::endl << std::endl;
 			delete p;
 
 			continue;

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * problem.h
  *
  *  Created on: 2016/02/08
@@ -80,13 +80,13 @@ public:
 	protected:
 		int resultCommCost;
 		int resultCompCost;
-		std::list < std::pair < Task*, DC* >> allocationList; // 各タスクの配置した内訳
 	public:
 		Solution() : resultCommCost{ 0 }, resultCompCost{ 0 } { }
 		Solution(int com, int cmp) : resultCommCost{ com }, resultCompCost{ cmp } { }
 		~Solution() {
 			obj_cnt--;
 		}
+		std::vector < std::pair < Task*, DC* >> allocationList; // 各タスクの配置した内訳
 		/*
 			std::pair<int, int> resultCost() {
 			return{ resultCommCost, resultCompCost };
@@ -117,7 +117,7 @@ public:
 			std::cout << "Total cost = " << getResultCost() << std::endl;
 		}
 		void printAllocation() {
-			std::cout << "Size of allocation list: " << allocationList.size() << std::endl;
+			std::cout << "Size of allocation list:" << std::endl; // << allocationList.size() << std::endl;
 			//auto std::list<std::pair<Task*, DC*>>::iterator it;
 			//auto it = allocationList.begin();
 			for (auto pair : allocationList) {
@@ -125,7 +125,6 @@ public:
 				//std::cout << "Task" << allocationList << ": " << "DC" << allocationList[i]-> << std::endl;
 				std::cout << "Task" << pair.first->idx << " : " << "DC" << pair.second->idx << std::endl;
 			}
-			std::cout << std::endl;
 		}
 		int calcTotalCost() {
 
@@ -204,7 +203,7 @@ public:
 	DC* getMaxDegreeNode() {
 		return [=](std::vector<DC*> adjNodes){
 			unsigned int max = std::numeric_limits<unsigned int>::min();
-			DC* tmp;
+			DC* tmp{ nullptr };
 			for (auto dst : adjNodes) {
 				//std::cout << d->adjacentNodes.size() << std::endl;
 				if (dst->adjacentNodes.size() >= max) {
@@ -469,12 +468,14 @@ std::list<Problem::DC *> dfsSearch(Problem *p, Problem::DC *src, Problem::DC *ds
 	std::stack<Problem::DC *> q;
 
 	q.push(src); // q0 push
-	// std::cout << "src: " << src->idx << ", dst: " << dst->idx << std::endl;
+	std::cout << "src: DC" << src->idx << ", dst: DC" << dst->idx << std::endl;
 
 	std::list<Problem::DC *> visitedMemory;
 	auto isVisited = [=](Problem::DC *v, std::list<Problem::DC *> mem) {
 		for(auto visited : mem) {
-			if(visited->idx == v->idx) return true;
+			if (visited->idx == v->idx) {
+				return true;
+			}
 		}
 		return false;
 	};
@@ -491,6 +492,7 @@ std::list<Problem::DC *> dfsSearch(Problem *p, Problem::DC *src, Problem::DC *ds
 			break;
 		}
 		else {
+
 			for(auto adj : v->adjacentNodes) {
 				// 未訪問ノードのうち、最もコストの小さいもの
 				//if(!isVisited(adj.second, visitedMemory)) q.push(adj.second);
@@ -498,13 +500,14 @@ std::list<Problem::DC *> dfsSearch(Problem *p, Problem::DC *src, Problem::DC *ds
 				// greedyな探索である
 				std::list<std::pair<int, Problem::DC *>> nonVisitedAdj{};
 				for(auto dc : v->adjacentNodes) {
-				if(!isVisited(dc.second, visitedMemory)) nonVisitedAdj.push_back(dc);
+					if(!isVisited(dc.second, visitedMemory)) nonVisitedAdj.push_back(dc);
 				}
 
-				Problem::DC *minCmmAdj  = [=](){
+				Problem::DC *minCmmAdj = [=](){
 					int min = std::numeric_limits<int>::max();
 					Problem::DC *minAdj = nullptr;
 					for(auto adjInfo : nonVisitedAdj) {
+
 						if(min >= adjInfo.first) {
 							min = adjInfo.first;
 							minAdj = adjInfo.second;
@@ -521,12 +524,12 @@ std::list<Problem::DC *> dfsSearch(Problem *p, Problem::DC *src, Problem::DC *ds
 		v = nullptr;
 	}
 
+	std::cout << "path: ";
 	for(auto dc : path) {
 		std::cout << dc->idx;
 		if(dc != dst) std::cout << "->";
 		else std::cout << std::endl;
 	}
-	std::cout << std::endl;
 
 	return path;
 }
@@ -589,9 +592,24 @@ Problem::Solution* greedy(Problem *p) {
 
 	solution->printAllocation();
 
-	// 配置したノード間ごとにパスを算出して格納
-	std::list<Problem::DC *> path{};
-	path = dfsSearch(p, p->dj[2], p->dj[0]);
+	// 配置したタスクごとにパスを算出して格納
+	std::list<std::list<Problem::DC *>> routes{}; // このリストのsizeはTask tiのsizeと一致する(筈)
+//	for (auto it = solution->allocationList.begin(); it != solution->allocationList.end(); ) {
+	for (int i = 0; i < solution->allocationList.size(); ++i) {
+		if (i == solution->allocationList.size()-1) break;
+		std::list<Problem::DC *> path = dfsSearch(p, solution->allocationList[i].second, solution->allocationList[i+1].second);
+		routes.push_back(path);
+	}
+	std::cout << "path amount: " << routes.size() << std::endl;
+
+	//routes = dfsSearch(p, p->dj[0], p->dj[p->dj.size()-1]);
+//	path = dfsSearch(p, p->dj[p->dj.size()-1], p->dj[0]);
+	for (auto path : routes) {
+		for (auto e : path) {
+			std::cout << e->idx << "->";
+		}
+		std::cout << std::endl;
+	}
 
 	return solution;
 }

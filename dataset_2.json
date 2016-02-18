@@ -28,7 +28,7 @@
                 "adjacentNodes": [
                     {
                         "cmm_c": 5,
-                        "adjIdx": 0
+                        "adjIdx": 1
                     }
                 ]
             },
@@ -39,7 +39,7 @@
                 "adjacentNodes": [
                     {
                         "cmm_c": 5,
-                        "adjIdx": 1
+                        "adjIdx": 0
                     }
                 ]
             }
