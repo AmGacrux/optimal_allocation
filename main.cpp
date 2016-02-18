@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 		else if(cmd == "b") {
 			allocation_optimize_NS::Problem::Timer timer;
 			std::cout << "Using brute force method:" << std::endl;
-			//std::list<allocation_optimize_NS::Problem::Solution> solutions = allocation_optimize_NS::brute_force(p);
+			std::list<allocation_optimize_NS::Problem::Solution> solutions = allocation_optimize_NS::brute_force(p);
 			timer.timerEnd(true);
 
 			delete p;

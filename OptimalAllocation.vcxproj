@@ -78,10 +78,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="dataset_1.json" />
+    <None Include="dataset_2.json" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="picojson.h" />
+    <ClInclude Include="problem.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
