@@ -58,6 +58,7 @@ int main(int argc, char** argv) {
 
 			timer.timerEnd(true);
 			std::cout << "greedy optimization is end." << std::endl << std::endl;
+			ans->printResultCost();
 
 			delete ans;
 			delete p;
