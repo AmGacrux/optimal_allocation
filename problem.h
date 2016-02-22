@@ -138,36 +138,55 @@ namespace allocation_optimize_NS {
 
 
 				resultCommCost = [=] {
-					int tmp{ 0 };
+					int tmp{ allocationList[0].first->cmm_r*p->betweenCmmCost(allocationList[0].second, allocationList[0].second) }; // 最初に配置したタスクは先に足しておく
+					std::cout << "tmp: " << tmp << std::endl;
 					// 経路に含まれるノードと一つ次のノード間のCmm_cを求める。
 					// ただし、adjacentNodesを連想配列で定義しておけばこんなこと書かなくて済むはず
 					// ↑について追記：同一DCへ複数のパスが存在しないことを前提にしているなら連想配列でも書ける
 					
 					// allocationListとroutesはTaskをどこに配置したかのリストとその配置が形成する経路を格納しているので
 					// 同じサイズの要素を格納してある
-					for (auto assignedPair : allocationList) {
-						for (auto route : routes) {
+					//for (auto assignedPair : allocationList) {
+					for (uint32_t i = 0; i < routes.size(); ++i) {
+						int tmpCmm = { 0 };
+						for (uint32_t j = 0; j < routes[i].size(); ++j) {
+							if (j == routes[i].size()-1) break;
+							//std::cout << p->betweenCmmCost(routes[i][j], routes[i][j + 1]) << std::endl;
+							tmpCmm += p->betweenCmmCost(routes[i][j], routes[i][j + 1]);
+					std::cout << "tmpCmm1: " << tmp << std::endl;
+						}
+					std::cout << "tmpCmm2: " << tmp << std::endl;
+						tmpCmm *= allocationList[i + 1].first->cmm_r;
+						//std::cout << "alloc["<<i+1<<"]'s cmm = " << allocationList[i+1].first->cmm_r << std::endl;
+						tmp += tmpCmm;
+					}
+					// 隣接する二つのノード間のCmmCostを求める
+					/*
+					for (uint32_t i = 0; i < routes.size(); ++i) {
 							int tmpCmm = { 0 };
-							for (uint32_t k = 0; k < route.size(); ++k) {
-								if (k == route.size() - 1) break;
+							for (uint32_t j = 0; j < routes[i].size(); ++j) {
+								if (j == routes[i].size() - 1) break;
 								int betweenCmm_c = [=](){
 									int tmp = { 0 };
-									for (auto node : route[k]->adjacentNodes) {
-										if (node.second == route[k + 1]) {
-											tmp = node.first;
+									for (auto node : routes[i][j]->adjacentNodes) {
+										if (node.second == routes[i][j]) {
+											std::cout << "no: " << node.second->idx << std::endl;
+							//				tmp = node;
 											break;
 										}
 									}
 									return tmp;
 								}();
-								std::cout << route[k]->idx << " -> " << route[k + 1]->idx << "(" << betweenCmm_c << ") ";
+								//std::cout << routes[k][0]->idx << " -> " << route[k + 1]->idx << "(" << betweenCmm_c << ") ";
 								tmpCmm += betweenCmm_c;
 							}
 							std::cout << "tmpCmm: " << tmpCmm << std::endl;
 							//std::cout << std::endl;
-							tmp += assignedPair.first->cmm_r*tmpCmm;
+							//tmp += assignedPair.first->cmm_r*tmpCmm;
+							tmp += p->ti[i]->cmm_r*tmpCmm;
 						}
-					}
+					*/
+					//}
 					return tmp;
 				}();
 
@@ -257,6 +276,33 @@ namespace allocation_optimize_NS {
 				}
 				return tmp;
 			}(dj);
+		}
+
+		// 隣接する二つのノード間のコスト
+		int betweenCmmCost(Problem::DC *prev, Problem::DC *next) {
+			int tmp{ 0 };
+			if (!isAdjoin(prev, next))
+				tmp = 0;
+			else if (prev->idx == next->idx)
+				tmp = 0;
+			else {
+				for (auto node : prev->adjacentNodes) {
+					if (node.second->idx == next->idx)
+						tmp = node.first;
+				}
+			}
+			return tmp;
+		}
+		// 二つのノードが隣接しているか
+		bool isAdjoin(Problem::DC *prev, Problem::DC *next) {
+			bool flag = false;
+			for (auto node : prev->adjacentNodes) {
+				if (node.second->idx == next->idx) {
+					flag = true;
+					break;
+				}
+			}
+			return flag;
 		}
 
 		// 読み込んだjsonファイルからProblemクラスを設定するコンストラクタ
